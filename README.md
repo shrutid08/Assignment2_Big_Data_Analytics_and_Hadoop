@@ -1,42 +1,152 @@
-# Assignment2_Big_Data_Analytics_and_Hadoop
+# Document Similarity using Hadoop MapReduce
 
-Document similarity MapReduce job using Hadoop (Jaccard similarity on token sets).
+This project implements a Hadoop MapReduce pipeline in Java to compute similarity between text documents.  
+It demonstrates distributed data processing concepts using Hadoop, Docker, and Maven.
 
-## Input Format
-Each input line must be:
+---
 
-```text
-document_id<TAB>document_content
+## Project Overview
+
+The goal of this project is to:
+
+- Process multiple text documents using Hadoop MapReduce  
+- Extract words from each document  
+- Compute similarity between document pairs  
+- Generate similarity scores as output  
+
+This simulates how large-scale document analytics can be performed in distributed systems.
+
+---
+
+## Tech Stack
+
+- **Java**
+- **Hadoop MapReduce**
+- **Docker (Hadoop cluster setup)**
+- **Maven (build tool)**
+
+---
+
+## Project Structure
+
+```
+Assignment2-Document-Similarity-usingg-MapReduce-main/
+│
+├── src/main/java/com/example/controller/
+│   ├── DocumentSimilarityDriver.java
+│   ├── DocumentSimilarityMapper.java
+│   └── DocumentSimilarityReducer.java
+│
+├── docs/        # Input documents
+├── output/      # MapReduce results
+├── pom.xml
+├── docker-compose.yml
+└── hadoop.env
 ```
 
-Example:
+---
 
-```text
-doc1	hadoop mapreduce is scalable
-doc2	mapreduce scales for big data
-doc3	java spring boot service
-```
+## How to Run the Project
 
-## Build
+### Build the Project
+
 ```bash
 mvn clean package
 ```
 
-## Run (Hadoop)
-```bash
-hadoop jar target/DocumentSimilarity-0.0.1-SNAPSHOT.jar \
-  com.example.controller.DocumentSimilarityDriver \
-  /input/documents.txt /output/similarity
+This generates:
+
+```
+target/DocumentSimilarity-0.0.1-SNAPSHOT.jar
 ```
 
-## Output Format
-```text
-docA,docB    similarity_score
+---
+
+### Start Hadoop Cluster (Docker)
+
+```bash
+docker-compose up -d
 ```
+
+Make sure Docker Desktop is running.
+
+---
+
+### Create Sample Documents
 
 Example:
-```text
-doc1,doc2    0.2857142857142857
-doc1,doc3    0.0
-doc2,doc3    0.0
+
+```bash
+mkdir docs
+echo "spark hadoop big data analytics" > docs/doc1.txt
+echo "hadoop mapreduce big data processing" > docs/doc2.txt
+echo "music streaming analytics spark data" > docs/doc3.txt
 ```
+
+---
+
+### Copy Files to Hadoop Container
+
+```bash
+docker cp docs namenode:/tmp/
+docker cp target/DocumentSimilarity-0.0.1-SNAPSHOT.jar namenode:/tmp/
+```
+
+---
+
+### Upload Documents to HDFS
+
+```bash
+docker exec -it namenode bash
+hdfs dfs -mkdir -p /input
+hdfs dfs -put /tmp/docs/* /input/
+```
+
+---
+
+### Run MapReduce Job
+
+```bash
+hadoop jar /tmp/DocumentSimilarity-0.0.1-SNAPSHOT.jar \
+com.example.controller.DocumentSimilarityDriver \
+/input /output
+```
+
+---
+
+### View Output
+
+```bash
+hdfs dfs -cat /output/part-r-00000
+```
+
+---
+
+### Copy Output Back to Local Project (Optional)
+
+```bash
+docker exec namenode hdfs dfs -get /output /tmp/output
+docker cp namenode:/tmp/output ./output
+```
+
+---
+
+## Example Output
+
+```
+doc1.txt,doc2.txt    0.50
+doc1.txt,doc3.txt    0.40
+doc2.txt,doc3.txt    0.30
+```
+
+These values represent similarity scores between document pairs.
+
+---
+
+## Learning Outcomes
+
+- Understanding Hadoop MapReduce workflow  
+- Distributed document processing  
+- Docker-based Hadoop setup  
+- Building and executing MapReduce jobs with Maven  
+
